@@ -36,6 +36,12 @@ client.on("message", async message => {
     } else if (message.content.startsWith(`${prefix}stop`)) {
         stop(message, serverQueue);
         return;
+    } else if (message.content.startsWith(`${prefix}pause`)) {
+        pause(message, serverQueue);
+        return;
+    } else if (message.content.startsWith(`${prefix}resume`)) {
+        resume(message, serverQueue);
+        return;
     } else {
         message.channel.send("You need to enter a valid command!");
     }
@@ -127,6 +133,38 @@ function play(guild, song) {
         .on("error", error => console.error(error));
     dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
     serverQueue.textChannel.send(`Start playing: **${song.title}**`);
+}
+
+function pause(message, serverQueue) {
+
+    // Check if there is a serverQueue
+    if(!serverQueue) return message.channel.send('There currently isn\'t any music playing rn!');
+
+    // Check if the user is in the same channel as bot
+    if (message.member.voiceChannel !== message.guild.me.voiceChannel) return message.channel.send('Sorry, you aren\'t in the same channel as the music bot');
+
+    if (serverQueue.connection.dispatcher.paused) return message.channel.send('This music is already paused');
+
+    serverQueue.connection.dispatcher.pause();
+
+    // Send output
+    message.channel.send(`Successfully paused ${serverQueue.songs[0].title}`);
+}
+
+function resume(message, serverQueue) {
+
+    // Check if there is a serverQueue
+    if(!serverQueue) return message.channel.send('There currently isn\'t any music playing rn!');
+
+    // Check if the user is in the same channel as bot
+    if (message.member.voiceChannel !== message.guild.me.voiceChannel) return message.channel.send('Sorry, you aren\'t in the same channel as the music bot');
+
+    if (!serverQueue.connection.dispatcher.paused) return message.channel.send('This music isn\'t paused');
+
+    serverQueue.connection.dispatcher.resume();
+
+    // Send output
+    message.channel.send(`Successfully resumed ${serverQueue.songs[0].title}`);
 }
 
 client.login(token);
